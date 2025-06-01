@@ -1,0 +1,78 @@
+name: Code Quality Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  UV_CACHE_DIR: ".uv"
+
+jobs:
+  setup-env:
+    runs-on: ubuntu-latest
+    outputs:
+      venv-path: ${{ steps.set-env.outputs.venv-path }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies and UV
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl build-essential libsndfile1 git
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Create virtual environment and sync deps
+        id: set-env
+        shell: bash
+        run: |
+          uv venv
+          source .venv/bin/activate
+          uv sync
+          uv run hatchling build
+          echo "::set-output name=venv-path::.venv"
+
+  lint:
+    needs: setup-env
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Activate venv and run ruff
+        shell: bash
+        run: |
+          source .venv/bin/activate
+          ruff format . --check
+          ruff check . --output-format=json --output-file=report.json
+        env:
+          PATH: ${{ env.PATH }}:$HOME/.local/bin
+  test:
+    needs: setup-env
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Activate venv and run tests
+        shell: bash
+        run: |
+          source .venv/bin/activate
+          uv run pytest -s -v src/test/app --cov=src/main/app --cov-report=xml:coverage.xml --cov-report=term
+        env:
+          PATH: ${{ env.PATH }}:$HOME/.local/bin
+  sonar:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    container:
+      image: sonarsource/sonar-scanner-cli:latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Sonar Scanner
+        run: |
+          sonar-scanner \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST }} \
+            -Dsonar.organization=${{ secrets.SONAR_ORG }} \
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}

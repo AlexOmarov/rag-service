@@ -38,6 +38,10 @@ sonar:
   stage: sonar
   image: sonarsource/sonar-scanner-cli:latest
   script:
-    - sonar-scanner -Dsonar.login=$SONAR_TOKEN
+    - sonar-scanner \ 
+      -Dsonar.login=$SONAR_TOKEN \
+      -Dsonar.host.url=$SONAR_HOST \
+      -Dsonar.organization=$SONAR_ORG \
+      -Dsonar.projectKey=$SONAR_PROJECT_KEY
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
