@@ -37,11 +37,13 @@ jobs:
       - name: Activate venv and run ruff
         shell: bash
         run: |
+          source .venv/bin/activate
           ruff format . --check
           ruff check . --output-format=json --output-file=report.json
       - name: Activate venv and run tests
         shell: bash
         run: |
+          source .venv/bin/activate
           uv run pytest -s -v src/test/app --cov=src/main/app --cov-report=xml:coverage.xml --cov-report=term
       - name: Run Sonar Scanner
         run: |
