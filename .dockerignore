@@ -1,0 +1,16 @@
+.dockerignore
+.git
+.github
+coverage.xml
+.coverage
+.pytest_cache
+coverage
+.cache
+venv/
+*.pyc
+dist/
+build/
+MANIFEST.in
+README.md
+data/
+logs/
