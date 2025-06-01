@@ -1,5 +1,6 @@
 .idea
 coverage.xml
+report.json
 .coverage
 .pytest_cache
 coverage
