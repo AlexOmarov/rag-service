@@ -47,6 +47,11 @@ jobs:
           uv run pytest -s -v src/test/app --cov=src/main/app --cov-report=xml:coverage.xml --cov-report=term
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@master
+        args: >
+          -Dsonar.organization=${{ env.SONAR_ORG }}
+          -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+          SONAR_ORG: ${{ secrets.SONAR_ORG }}
