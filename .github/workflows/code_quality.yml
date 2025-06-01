@@ -34,41 +34,17 @@ jobs:
           uv run hatchling build
           echo "::set-output name=venv-path::.venv"
 
-  lint:
-    needs: setup-env
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
       - name: Activate venv and run ruff
         shell: bash
         run: |
           source .venv/bin/activate
           ruff format . --check
           ruff check . --output-format=json --output-file=report.json
-        env:
-          PATH: ${{ env.PATH }}:$HOME/.local/bin
-  test:
-    needs: setup-env
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
       - name: Activate venv and run tests
         shell: bash
         run: |
           source .venv/bin/activate
           uv run pytest -s -v src/test/app --cov=src/main/app --cov-report=xml:coverage.xml --cov-report=term
-        env:
-          PATH: ${{ env.PATH }}:$HOME/.local/bin
-  sonar:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    container:
-      image: sonarsource/sonar-scanner-cli:latest
-    steps:
-      - uses: actions/checkout@v3
-
       - name: Run Sonar Scanner
         run: |
           sonar-scanner \
