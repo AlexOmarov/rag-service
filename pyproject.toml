@@ -40,7 +40,6 @@ exclude = [
 
 [tool.ruff.format]
 quote-style = "single"
-indent-style = "tab"
 docstring-code-format = true
 
 [tool.hatch.build.targets.wheel]

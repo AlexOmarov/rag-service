@@ -37,23 +37,20 @@ from qdrant_client.http.models import (
 import qdrant_client
 import shutil
 import tempfile
+
 app = FastAPI()
-COLLECTION_NAME = "rag_documents"
+COLLECTION_NAME = 'rag_documents'
 
 qdrant_client = qdrant_client.QdrantClient(
-    url="http://localhost:6333",
+    url='http://localhost:6333',
 )
 
 # Embeddings
-embedding = OllamaEmbeddings(
-    model="nomic-embed-text"
-)
+embedding = OllamaEmbeddings(model='nomic-embed-text')
 
 embedding_dim = 768
 
-if not qdrant_client.collection_exists(
-    COLLECTION_NAME
-):
+if not qdrant_client.collection_exists(COLLECTION_NAME):
     qdrant_client.create_collection(
         collection_name=COLLECTION_NAME,
         vectors_config=VectorParams(
@@ -68,9 +65,7 @@ vectorstore = QdrantVectorStore(
     embedding=embedding,
 )
 
-llm = OllamaLLM(
-    model="mistral"
-)
+llm = OllamaLLM(model='mistral')
 
 retriever = vectorstore.as_retriever()
 
@@ -89,130 +84,88 @@ splitter = RecursiveCharacterTextSplitter(
 # When splitting docs, add source metadata (inside parse_file)
 def parse_file(
     file_path: Path,
-) -> list[
-    Document
-]:
-    if (
-        file_path.suffix.lower()
-        in [
-            ".md",
-            ".puml",
-        ]
-    ):
+) -> list[Document]:
+    if file_path.suffix.lower() in [
+        '.md',
+        '.puml',
+    ]:
         loader = TextLoader(
-            str(
-                file_path
-            ),
-            encoding="utf-8",
+            str(file_path),
+            encoding='utf-8',
         )
         docs = loader.load()
-        split_docs = splitter.split_documents(
-            docs
-        )
+        split_docs = splitter.split_documents(docs)
         # Add file name to each document's metadata
         for d in split_docs:
-            d.metadata[
-                "source"
-            ] = file_path.name
+            d.metadata['source'] = file_path.name
         return split_docs
     else:
-        raise ValueError(
-            f"Unsupported file type: {file_path.suffix}"
-        )
+        raise ValueError(f'Unsupported file type: {file_path.suffix}')
 
 
-@app.post(
-    "/upload"
-)
+@app.post('/upload')
 async def upload_file(
-    file: UploadFile = File(
-        ...
-    ),
+    file: UploadFile = File(...),
 ):
     """Upload .md or .puml file and index its content."""
     if not file.filename.endswith(
         (
-            ".md",
-            ".puml",
+            '.md',
+            '.puml',
         )
     ):
         raise HTTPException(
             status_code=400,
-            detail="Only .md and .puml files are supported.",
+            detail='Only .md and .puml files are supported.',
         )
 
-    with (
-        tempfile.TemporaryDirectory() as tmpdir
-    ):
-        temp_file_path = (
-            Path(
-                tmpdir
-            )
-            / file.filename
-        )
-        with (
-            open(
-                temp_file_path,
-                "wb",
-            ) as f
-        ):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        temp_file_path = Path(tmpdir) / file.filename
+        with open(
+            temp_file_path,
+            'wb',
+        ) as f:
             shutil.copyfileobj(
                 file.file,
                 f,
             )
 
         try:
-            docs = parse_file(
-                temp_file_path
-            )
+            docs = parse_file(temp_file_path)
         except ValueError as e:
             raise HTTPException(
                 status_code=400,
-                detail=str(
-                    e
-                ),
+                detail=str(e),
             )
 
-        vectorstore.add_documents(
-            docs
-        )
+        vectorstore.add_documents(docs)
 
     return JSONResponse(
         content={
-            "status": "ok",
-            "indexed_docs": len(
-                docs
-            ),
+            'status': 'ok',
+            'indexed_docs': len(docs),
         }
     )
 
 
 # Modify /query to get documents with answer
-@app.get(
-    "/query"
-)
+@app.get('/query')
 async def query(
     q: str,
 ):
     if not q:
         raise HTTPException(
             status_code=400,
-            detail="Query cannot be empty.",
+            detail='Query cannot be empty.',
         )
 
     # Use call method to get docs + answer
-    chain_response = qa.invoke(
-        {
-            "query": q
-        }
-    )
+    chain_response = qa.invoke({'query': q})
 
     # Extract answer and source docs
-    answer = chain_response[
-        "result"
-    ]
+    answer = chain_response['result']
     docs = chain_response.get(
-        "source_documents",
+        'source_documents',
         [],
     )  # This key depends on chain implementation
 
@@ -220,8 +173,8 @@ async def query(
     sources = list(
         {
             doc.metadata.get(
-                "source",
-                "unknown",
+                'source',
+                'unknown',
             )
             for doc in docs
         }
@@ -229,7 +182,7 @@ async def query(
 
     return JSONResponse(
         content={
-            "response": answer,
-            "sources": sources,
+            'response': answer,
+            'sources': sources,
         }
     )

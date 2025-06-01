@@ -17,46 +17,34 @@ class TestLogger:
     def _setup(
         self,
     ):
-        print(
-            "basic setup into class"
-        )
+        print('basic setup into class')
 
     def _teardown(
         self,
     ):
-        print(
-            "basic teardown into class"
-        )
+        print('basic teardown into class')
 
     @classmethod
     def _setup_class(
         cls,
     ):
-        print(
-            "class setup"
-        )
+        print('class setup')
 
     @classmethod
     def _teardown_class(
         cls,
     ):
-        print(
-            "class teardown"
-        )
+        print('class teardown')
 
     def _setup_method(
         self,
     ):
-        print(
-            "method setup"
-        )
+        print('method setup')
 
     def _teardown_method(
         self,
     ):
-        print(
-            "method teardown"
-        )
+        print('method teardown')
 
     def test_created_logger(
         self,
@@ -65,19 +53,11 @@ class TestLogger:
         Logger creation test
         """
 
-        logger_name = "TEST_LOGGER"
-        log = create_logger(
-            logger_name
-        )
+        logger_name = 'TEST_LOGGER'
+        log = create_logger(logger_name)
 
-        assert (
-            log
-            is not None
-        )
-        assert (
-            log.level
-            == logging.INFO
-        )
+        assert log is not None
+        assert log.level == logging.INFO
 
     def test_when_logger_is_created_name_is_applied(
         self,
@@ -86,12 +66,7 @@ class TestLogger:
         Logger name test
         """
 
-        logger_name = "TEST_LOGGER"
-        log = create_logger(
-            logger_name
-        )
+        logger_name = 'TEST_LOGGER'
+        log = create_logger(logger_name)
 
-        assert (
-            log.name
-            == logger_name
-        )
+        assert log.name == logger_name
