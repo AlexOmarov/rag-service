@@ -8,7 +8,7 @@ COPY ./src ./src
 COPY pyproject.toml ./pyproject.toml
 
 RUN wget -qO- https://github.com/patrickjahns/uv/releases/latest/download/uv-linux-amd64.tar.gz | tar -xz -C /usr/local/bin && \
-    uv sync && \
+    uv sync --without groups && \
     useradd -ms /bin/bash app
 
 USER app

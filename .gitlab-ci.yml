@@ -1,0 +1,43 @@
+stages:
+  - lint
+  - test
+  - sonar
+
+variables:
+  GIT_DEPTH: 0
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  UV_CACHE_DIR: ".uv"
+
+.default_job:
+  image: python:3.13-slim
+  before_script:
+    - apt-get update && apt-get install -y curl build-essential libsndfile1 git
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.local/bin:$PATH"
+    - uv venv
+    - source .venv/bin/activate
+    - uv sync
+    - uv run hatchling build
+
+lint:
+  stage: lint
+  extends: .default_job
+  script:
+    - source .venv/bin/activate
+    - ruff format . --check
+    - ruff check . --output-format=json --output-file=report.json
+
+test:
+  stage: test
+  extends: .default_job
+  script:
+    - source .venv/bin/activate
+    - uv run pytest -s -v src/test/app --cov=src/main/app --cov-report=xml:coverage.xml --cov-report=term
+
+sonar:
+  stage: sonar
+  image: sonarsource/sonar-scanner-cli:latest
+  script:
+    - sonar-scanner -Dsonar.login=$SONAR_TOKEN
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'

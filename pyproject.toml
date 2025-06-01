@@ -3,8 +3,12 @@ name = "rag-service"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
+    "fastapi==0.115.12",
+    "uvicorn==0.34.3",
     "langchain==0.3.25",
     "langchain-community==0.3.24",
+    "langchain-ollama==0.3.3",
+    "langchain-qdrant==0.2.0",
     "qdrant-client==1.14.2",
     "ollama==0.5.1",
     "hatchling==1.27.0",
